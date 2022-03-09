@@ -50,12 +50,25 @@ class UpdateLicensesCommand extends Command
     ];
     const DEFAULT_FILTERS = [];
 
+    const LICENSES_LIST = [
+        'afl' => 'AFL-3.0',
+        'osl' => 'OSL-3.0',
+        'mit' => 'MIT',
+    ];
+
     /**
      * License content
      *
      * @var string
      */
     private $text;
+
+    /**
+     * License author
+     *
+     * @var string
+     */
+    private $author;
 
     /**
      * License file path (not content)
@@ -160,6 +173,13 @@ class UpdateLicensesCommand extends Command
                 InputOption::VALUE_OPTIONAL,
                 'Fix existing licenses only if they contain that string',
                 'prestashop'
+            )
+            ->addOption(
+                'author',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Adding name of author',
+                'PrestaShop'
             );
     }
 
@@ -183,6 +203,8 @@ class UpdateLicensesCommand extends Command
 
         $discriminationOption = $input->getOption('header-discrimination-string');
         $this->discriminationString = is_string($discriminationOption) ? $discriminationOption : '';
+
+        $this->author = $input->getOption('author');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -379,8 +401,8 @@ class UpdateLicensesCommand extends Command
 
         $content = json_decode($file->getContents(), true);
         $oldContent = $content;
-        $content['author'] = 'PrestaShop';
-        $content['license'] = (false !== strpos($this->license, 'afl')) ? 'AFL-3.0' : 'OSL-3.0';
+        $content['author'] = $this->author;
+        $content['license'] = (false !== array_search($this->license, LICENSES_LIST)) ? LICENSES_LIST[$this->license] : 'OSL-3.0';
 
         if (!$this->runAsDry) {
             $result = file_put_contents(
