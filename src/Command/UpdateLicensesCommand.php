@@ -402,7 +402,14 @@ class UpdateLicensesCommand extends Command
         $content = json_decode($file->getContents(), true);
         $oldContent = $content;
         $content['author'] = $this->author;
-        $content['license'] = (false !== array_search($this->license, LICENSES_LIST)) ? LICENSES_LIST[$this->license] : 'OSL-3.0';
+
+        $content['license'] = 'OSL-3.0';
+        foreach(static::LICENSES_LIST as $key => $license) {
+            if (false !== strpos($this->license, $key)) {
+                $content['license'] = static::LICENSES_LIST[$key];
+                break;
+            }
+        }
 
         if (!$this->runAsDry) {
             $result = file_put_contents(
